@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: medusa-store
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: CHANGE_THIS_DB_PASSWORD
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  medusa:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://postgres:CHANGE_THIS_DB_PASSWORD@postgres:5432/medusa-store
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: CHANGE_THIS_JWT_SECRET
+      COOKIE_SECRET: CHANGE_THIS_COOKIE_SECRET
+      PORT: 9000
+    ports:
+      - "9000:9000"
+    volumes:
+      - .:/server
+      - /server/node_modules
+
+volumes:
+  postgres_data:
